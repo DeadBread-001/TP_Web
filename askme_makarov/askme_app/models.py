@@ -26,11 +26,11 @@ class ProfileManager(models.Manager):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    avatar = models.ImageField(upload_to='static/img', null=True, blank=True)
+    avatar = models.ImageField(upload_to='avatar/%Y/%m/%d', null=True, blank=True, default='css_ava.svg')
     manager = ProfileManager()
 
     def __str__(self):
-        return f"{self.user.username} profile"
+        return self.user.username
 
 
 class QuestionManager(models.Manager):
@@ -67,7 +67,8 @@ class Question(models.Model):
 
 class CommentManager(models.Manager):
     def get_comments_ordered_by_likes(self, question_id):
-        comments = self.filter(question=question_id).annotate(num_likes=Count('comment_likes')).order_by('-num_likes',
+        comments = self.filter(question=question_id).annotate(num_likes=Count('comment_likes')).order_by('-is_correct',
+                                                                                                         '-num_likes',
                                                                                                          'create_date')
         return comments
 
@@ -85,6 +86,9 @@ class Comment(models.Model):
 
     def get_likes_count(self):
         return self.comment_likes.count()
+
+    def get_question_author_id(self):
+        return self.question.author.user.id
 
 
 class TagManager(models.Manager):
@@ -118,6 +122,7 @@ class QuestionLikeManager(models.Manager):
 class QuestionLike(models.Model):
     author = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='question_likes')
     question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name='question_likes')
+    manager = QuestionLikeManager()
 
 
 class CommentLikeManager(models.Manager):
@@ -131,3 +136,4 @@ class CommentLikeManager(models.Manager):
 class CommentLike(models.Model):
     author = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='comment_likes')
     comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='comment_likes')
+    manager = CommentLikeManager()

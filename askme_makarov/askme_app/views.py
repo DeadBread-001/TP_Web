@@ -2,13 +2,15 @@ from django.contrib import auth
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.forms import model_to_dict
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse, JsonResponse
 from django.core.paginator import (Paginator, EmptyPage, PageNotAnInteger)
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 from askme_app.forms import LoginForm, RegisterForm, SettingsForm, AskForm, CommentForm
-from askme_app.models import Question, Tag, Comment, Profile
+from askme_app.models import Question, Tag, Comment, Profile, QuestionLike, CommentLike
 
 TOP_TAGS = Tag.manager.top_of_tags(10)
 TOP_USERS = Profile.manager.get_top_users(10)
@@ -109,14 +111,13 @@ def hot(request):
 @login_required(login_url='/login/', redirect_field_name='continue')
 def settings(request):
     if request.method == 'GET':
-        user_id = request.user.id
-        user, profile = Profile.manager.get_user_by_id(user_id), Profile.manager.get_profile_by_id(user_id)
-        settings_form = SettingsForm(initial={'username': user.username, 'email': user.email, 'avatar': profile.avatar})
-    if request.method == 'POST':
-        curr_username, email, avatar = request.user.username, request.POST['email'], request.POST['avatar']
-        settings_form = SettingsForm(request.POST, request=request, initial={'username': curr_username, 'email': email, 'avatar': avatar})
+        settings_form = SettingsForm(initial=model_to_dict(request.user))
+    elif request.method == 'POST':
+        settings_form = SettingsForm(request.POST, request.FILES, instance=request.user)
         if settings_form.is_valid():
-            settings_form.update()
+            settings_form.save()
+    else:
+        settings_form = SettingsForm()
     return render(request, 'settings.html', {'tags': TOP_TAGS,'users': TOP_USERS, 'settings_form': settings_form})
 
 
@@ -124,3 +125,38 @@ def tag(request, tag_name):
     tag_item = Tag.manager.get_questions_by_tag(tag_name)
     items_page = paginate(tag_item.order_by('-create_date'), request)
     return render(request, 'tag.html', {'tag': tag_name, 'questions': items_page, 'pages': items_page, 'tags': TOP_TAGS,'users': TOP_USERS})
+
+
+@login_required(login_url='/login/', redirect_field_name='continue')
+@csrf_protect
+def like(request):
+    if request.POST.get('question_id') is not None:
+        id = request.POST.get('question_id')
+        question = get_object_or_404(Question, pk=id)
+        QuestionLike.manager.toggle_like(user=request.user.profile, question=question)
+        count = question.get_likes_count()
+    if request.POST.get('comment_id') is not None:
+        id = request.POST.get('comment_id')
+        comment = get_object_or_404(Comment, pk=id)
+        CommentLike.manager.toggle_like(user=request.user.profile, comment=comment)
+        count = comment.get_likes_count()
+
+    return JsonResponse({'count': count})
+
+
+@login_required(login_url='/login/', redirect_field_name='continue')
+@csrf_protect
+def toggle_correct(request):
+    id = request.POST.get('comment_id')
+    comment = get_object_or_404(Comment, pk=id)
+    comment.is_correct = not comment.is_correct
+    correct = comment.is_correct
+    comment.save()
+    return JsonResponse({'is_correct': correct})
+
+@login_required(login_url='/login/', redirect_field_name='continue')
+@csrf_protect
+def check_author(request):
+    id = request.POST.get('comment_id')
+    comment = get_object_or_404(Comment, pk=id)
+    return JsonResponse({'user': request.user.id, 'author': comment.get_question_author_id()})

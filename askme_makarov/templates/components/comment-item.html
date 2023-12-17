@@ -1,8 +1,13 @@
 {% load static %}
-<div class="question">
+
+<div class="question comment {% if comment.is_correct %} bold {% endif %}">
     <div class="row">
         <div class="col-2">
-            <img alt="" class="question-image" src="{% static '/img/css_ava.svg' %}">
+            {% if comment.author.avatar %}
+                <img class="question-image" src="{{ comment.author.avatar.url }}" alt=""/>
+            {% else %}
+                <img class="question-image" src="{% get_media_prefix %}css_ava.svg" alt=""/>
+            {% endif %}
         </div>
         <div class="col-10">
             <div class="question-text">
@@ -10,28 +15,19 @@
             </div>
         </div>
         <div class="g-4 d-flex">
-            <div class="col-2">
+            <div class="col-2 comment-like-section">
                 {% if comment.get_likes_count > 0 %}
-                    <i class="fas fa-arrow-down fa-lg"></i>
-                    <span class="text-success mx-1">{{ comment.get_likes_count }}</span>
-                    <i class="fas fa-arrow-up fa-lg text-success"></i>
-                {% elif comment.get_likes_count < 0 %}
-                    <i class="fas fa-arrow-down fa-lg text-danger"></i>
-                    <span class="text-danger mx-1">{{ comment.get_likes_count }}</span>
-                    <i class="fas fa-arrow-up fa-lg"></i>
-                    {% else %}
-                    <i class="fas fa-arrow-down fa-lg"></i>
+                    <span class="mx-1 text-success">{{ comment.get_likes_count }}</span>
+                {% else %}
                     <span class="mx-1">{{ comment.get_likes_count }}</span>
-                    <i class="fas fa-arrow-up fa-lg "></i>
                 {% endif %}
+                <button type="button" data-id="{{ comment.id }}" class="btn p-0">
+                    <i class="fa fa-thumbs-up"></i>
+                </button>
             </div>
             <div class="col-10">
-                <div class="form-check">
-                    {% if comment.is_correct == True%}
-                      <input class="form-check-input" type="checkbox" value="" checked>
-                    {% else %}
-                      <input class="form-check-input" type="checkbox" value="" >
-                    {% endif %}
+                <div class="form-check checkbox-section">
+                    <input class="form-check-input" data-id="{{ comment.id }}" type="checkbox" value="" {% if comment.is_correct %}checked{% endif %}>
                     <label class="form-check-label">Correct!</label>
                 </div>
             </div>

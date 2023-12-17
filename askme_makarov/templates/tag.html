@@ -11,14 +11,14 @@
 
 {% block content %}
 
-<h2 class="mb-4">Tag: {{ tag }}</h2>
+    <h2 class="mb-4">Tag: {{ tag }}</h2>
 
-{% for question in questions %}
+    {% for question in questions %}
 
-{% include 'components/question-item.html' %}
+        {% include 'components/question-item.html' %}
 
-{% endfor %}
+    {% endfor %}
 
-{% include 'components/paginator.html' %}
+    {% include 'components/paginator.html' %}
 
-{% endblock content%}
+{% endblock content %}

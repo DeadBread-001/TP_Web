@@ -11,58 +11,57 @@
 {% endblock auth %}
 
 {% block content %}
-{#<link rel="stylesheet" type="text/css" href="{% static 'css/jquery-ui.css'%}">#}
-{#<script src="{% static 'js/jquery.js' %}"></script>#}
-{#<script src="{% static 'js/jquery-ui.js' %}"></script>#}
-<div class="col-8">
-    <h2> New Question</h2>
-    <div class="row">
-        <form class="mt-2 d-flex flex-column gap-4" method="POST">
-            {% csrf_token %}
-            {% bootstrap_form ask_form %}
-            <button type="submit" class="btn btn-primary col-2 g-3" >Ask</button>
-        </form>
+    <div class="col-8">
+        <h2> New Question</h2>
+        <div class="row">
+            <form class="mt-2 d-flex flex-column gap-4" method="POST">
+                {% csrf_token %}
+                {% bootstrap_form ask_form %}
+                <button type="submit" class="btn btn-primary col-2 g-3">Ask</button>
+            </form>
+        </div>
     </div>
-</div>
     <script>
-  $( function() {
-    var availableTags = {{ all_tags|safe }};
-    function split( val ) {
-      return val.split( /,\s*/ );
-    }
-    function extractLast( term ) {
-      return split( term ).pop();
-    }
+        $(function () {
+            var availableTags = {{ all_tags|safe }};
 
-    $( "#id_tags" )
-      .on( "keydown", function( event ) {
-        if ( event.keyCode === $.ui.keyCode.TAB &&
-            $( this ).autocomplete( "instance" ).menu.active ) {
-          event.preventDefault();
-        }
-      })
-      .autocomplete({
-        minLength: 0,
-        source: function( request, response ) {
-          var term = extractLast(request.term);
-          var matchingTags = $.ui.autocomplete.filter(availableTags, term);
-          var slicedTags = matchingTags.slice(0, 10);
-          response(slicedTags);
-        },
-        focus: function() {
-          return false;
-        },
-        select: function( event, ui ) {
-          var terms = split( this.value );
-          terms.pop();
-          terms.push( ui.item.value );
-          terms.push( "" );
-          this.value = terms.join( ", " );
-          return false;
-        }
-      });
-  });
-</script>
+            function split(val) {
+                return val.split(/,\s*/);
+            }
+
+            function extractLast(term) {
+                return split(term).pop();
+            }
+
+            $("#id_tags")
+                .on("keydown", function (event) {
+                    if (event.keyCode === $.ui.keyCode.TAB &&
+                        $(this).autocomplete("instance").menu.active) {
+                        event.preventDefault();
+                    }
+                })
+                .autocomplete({
+                    minLength: 0,
+                    source: function (request, response) {
+                        var term = extractLast(request.term);
+                        var matchingTags = $.ui.autocomplete.filter(availableTags, term);
+                        var slicedTags = matchingTags.slice(0, 10);
+                        response(slicedTags);
+                    },
+                    focus: function () {
+                        return false;
+                    },
+                    select: function (event, ui) {
+                        var terms = split(this.value);
+                        terms.pop();
+                        terms.push(ui.item.value);
+                        terms.push("");
+                        this.value = terms.join(", ");
+                        return false;
+                    }
+                });
+        });
+    </script>
 {% endblock %}
 
 

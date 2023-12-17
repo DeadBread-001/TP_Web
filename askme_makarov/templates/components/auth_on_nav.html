@@ -1,9 +1,14 @@
 {% load static %}
+
 <div class='d-flex flex-row align-items-center gap-3'>
-    <img class="avatar" src="{% static '/img/css_ava.svg' %} "/>
+    {% if request.user.profile.avatar %}
+        <img class="avatar" src="{{ request.user.profile.avatar.url }}" alt="Your avatar"/>
+    {% else %}
+        <img class="avatar" src="{% get_media_prefix %}css_ava.svg" alt="Default avatar"/>
+    {% endif %}
     <div>
         <p class="mb-2">{{ user.username }}</p>
-        <a href="{%  url 'settings' %}">Settings</a>
-        <a href="{%  url 'logout' %}">Log out</a>
+        <a href="{% url 'settings' %}">Settings</a>
+        <a href="{% url 'logout' %}">Log out</a>
     </div>
 </div>

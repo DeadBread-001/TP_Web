@@ -52,18 +52,23 @@ class RegisterForm(forms.ModelForm):
             return None
         profile = Profile.manager.create(user=user, avatar=avatar)
         if not profile:
-            self.add_error(None,"Profile saving error!")
+            self.add_error(None, "Profile saving error!")
             return None
 
         return user
 
-class SettingsForm(forms.Form):
+
+class SettingsForm(forms.ModelForm):
     username = forms.CharField(disabled=True)
     email = forms.EmailField(required=False)
     password = forms.CharField(min_length=4, widget=forms.PasswordInput, label="Old password")
     new_password = forms.CharField(min_length=4, widget=forms.PasswordInput, label="New password", required=False)
     password_check = forms.CharField(widget=forms.PasswordInput, label="Repeat password", required=False)
     avatar = forms.ImageField(required=False)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email']
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -84,42 +89,32 @@ class SettingsForm(forms.Form):
             raise ValidationError("The old password is incorrect!")
         return password
 
-    def update(self):
-        data = self.cleaned_data
+    def save(self, commit=True):
+        user = super().save(commit=False)
 
-        username = data['username']
-        new_password = data['new_password']
-        avatar = data['avatar']
+        username = self.cleaned_data.get('username')
+        new_password = self.cleaned_data.get('new_password')
 
-        data.pop('username')
-        data.pop('password')
-        data.pop('new_password')
-        data.pop('password_check')
-        data.pop('avatar')
+        profile = user.profile
+        received_avatar = self.cleaned_data.get('avatar')
+        if received_avatar:
+            profile.avatar = self.cleaned_data['avatar']
 
-        User.objects.filter(username=username).update(**data)
+        user.save()
+        profile.save()
 
-        user_tmp = User.objects.get(username=username)
-        if not user_tmp:
-            self.add_error(field=None, error="User updating error!")
-            return None
-
-        profile = Profile.manager.filter(user_id=user_tmp.id).update(avatar=avatar)
-        if not profile:
-            self.add_error(field=None, error="Profile updating error!")
-            return None
-
-        if new_password != '':
-            user_tmp.set_password(new_password)
-            user_tmp.save()
+        if new_password:
+            user.set_password(new_password)
+            user.save()
 
             test_auth_user = auth.authenticate(request=self.request, username=username, password=new_password)
             if test_auth_user is not None:
                 login(self.request, test_auth_user)
             else:
-                self.add_error(field=None, error="User authenticating error!")
+                self.add_error(None, "User authentication error!")
 
-        return user_tmp
+        return user
+
 
 class AskForm(forms.ModelForm):
     title = forms.CharField(max_length=64)
@@ -161,8 +156,10 @@ class AskForm(forms.ModelForm):
 
         return new_question
 
+
 class CommentForm(forms.ModelForm):
     content = forms.CharField(widget=forms.Textarea, max_length=255, label="")
+
     class Meta:
         model = Comment
         fields = ['content']

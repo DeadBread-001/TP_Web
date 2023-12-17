@@ -45,6 +45,7 @@ header {
 .avatar {
     width: 60px;
     height: 60px;
+    border-radius: 100px;
 }
 
 .question {
@@ -57,6 +58,7 @@ header {
 .question-image {
     width: 100px;
     height: 100px;
+    border-radius: 100px;
 }
 
 .question-title {
@@ -73,6 +75,7 @@ header {
 .question-image-primary {
     width: 150px;
     height: 150px;
+    border-radius: 100px;
 }
 
 .no-padding {
@@ -117,10 +120,14 @@ h2 + h2::before {
     color: rgb(128, 128, 128);
 }
 
-.fa-arrow-down:hover {
-    color: red;
+.fa-thumbs-up {
+    margin-bottom: 5px;
 }
 
-.fa-arrow-up:hover {
+.fa-thumbs-up:hover {
     color: green;
+}
+
+.bold {
+    border: 3px solid green !important;
 }

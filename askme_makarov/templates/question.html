@@ -10,52 +10,52 @@
 {% endblock auth %}
 
 {% block content %}
-<div class="question-primary">
-    <div class="row">
+    <div class="question-primary">
         <div class="row">
-            <div class="col-3">
-                <img alt="" class="question-image-primary" src="{% static '/img/css_ava.svg' %}">
-            </div>
-            <div class="col-9">
-                <div class="question-title"> {{question.title}} </div>
-                <div class="question-text">
-                    {{ question.content}}
-                </div>
-            </div>
-            <div class="g-4 d-flex">
+            <div class="row">
                 <div class="col-3">
-                    {% if question.get_likes_count > 0 %}
-                        <i class="fas fa-arrow-down fa-lg"></i>
-                        <span class="text-success mx-1">{{ question.get_likes_count }}</span>
-                        <i class="fas fa-arrow-up fa-lg"></i>
-                    {% elif question.get_likes_count < 0 %}
-                        <i class="fas fa-arrow-down fa-lg"></i>
-                        <span class="text-danger mx-1">{{ question.get_likes_count }}</span>
-                        <i class="fas fa-arrow-up fa-lg"></i>
+                    {% if question.author.avatar %}
+                        <img class="question-image-primary" src="{{ question.author.avatar.url }}" alt=""/>
                     {% else %}
-                        <i class="fas fa-arrow-down fa-lg"></i>
-                        <span class="mx-1">{{ question.get_likes_count }}</span>
-                        <i class="fas fa-arrow-up fa-lg "></i>
+                        <img class="question-image-primary" src="{% get_media_prefix %}css_ava.svg" alt=""/>
                     {% endif %}
                 </div>
-                 <div class="col-7 fs-5 program-lang">
-                Tags: {% for tag in question.tags.all %}
-                    <a class="badge bg-dark item" id="tag-{{forloop.counter}}" href="{% url 'tag' tag_name=tag.name %}">{{tag.name}}</a>
-                {% endfor %}
+                <div class="col-9">
+                    <div class="question-title"> {{ question.title }} </div>
+                    <div class="question-text">
+                        {{ question.content }}
+                    </div>
+                </div>
+                <div class="g-4 d-flex">
+                    <div class="col-3 question-like-section">
+                        {% if question.get_likes_count > 0 %}
+                            <span class="mx-1 text-success">{{ question.get_likes_count }}</span>
+                        {% else %}
+                            <span class="mx-1">{{ question.get_likes_count }}</span>
+                        {% endif %}
+                        <button type="button" data-id="{{ question.id }}" class="btn p-0">
+                            <i class="fa fa-thumbs-up"></i>
+                        </button>
+                    </div>
+                    <div class="col-7 fs-5 program-lang">
+                        Tags: {% for tag in question.tags.all %}
+                        <a class="badge bg-dark item" id="tag-{{ forloop.counter }}"
+                           href="{% url 'tag' tag_name=tag.name %}">{{ tag.name }}</a>
+                    {% endfor %}
+                    </div>
                 </div>
             </div>
+            <hr class="bg-dark border-2 border-top border-dark g-3"/>
+            {% for comment in comments %}
+                {% include 'components/comment-item.html' %}
+            {% endfor %}
         </div>
         <hr class="bg-dark border-2 border-top border-dark g-3"/>
-        {% for comment in comments %}
-        {% include 'components/comment-item.html' %}
-        {% endfor %}
     </div>
-    <hr class="bg-dark border-2 border-top border-dark g-3" />
-</div>
-{% include 'components/paginator.html' %}
+    {% include 'components/paginator.html' %}
     <form method="post">
         {% csrf_token %}
         {% bootstrap_form comment_form %}
-        <button type="submit" class="btn btn-primary col-2 g-3 mt-3" >Answer</button>
+        <button type="submit" class="btn btn-primary col-2 g-3 mt-3">Answer</button>
     </form>
 {% endblock %}

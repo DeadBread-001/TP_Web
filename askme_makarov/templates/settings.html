@@ -12,13 +12,18 @@
 
 {% block content %}
 
-<div class="col-8">
-    <h2>Settings: {{ user.username }}</h2>
-    <form action="" class="col-7 mt-sm-3" method="POST">
-        {% csrf_token %}
-        {% bootstrap_form settings_form %}
-        <button class="btn btn-primary btn-block mb-3" type="submit">Save</button>
-    </form>
-</div>
+    <div class="col-8">
+        <h2>Settings: {{ user.username }}</h2>
+        <form action="" class="col-7 mt-sm-3" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% bootstrap_form settings_form %}
+            {% if request.user.profile.avatar %}
+                <div class="w-50">
+                    <img src="{{ request.user.profile.avatar.url }}" alt="Profile Avatar" class="w-100"/>
+                </div>
+            {% endif %}
+            <button class="btn btn-primary btn-block mb-3 mt-3" type="submit">Save</button>
+        </form>
+    </div>
 
 {% endblock %}
