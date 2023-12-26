@@ -1,0 +1,26 @@
+upstream askme {
+    server 127.0.0.1:8000;
+}
+
+server {
+    listen 80 default_server;
+    server_name askme.com;
+
+    error_log /var/log/nginx/askme_error.log; 
+    access_log /var/log/nginx/askme_access.log;
+
+    location /uploads {
+        alias "/media/deadbread/Windows/Учеба/ТП/1 сем/Web/TP_Web/askme_makarov/uploads/";
+    }
+
+    location /static {
+        alias "/media/deadbread/Windows/Учеба/ТП/1 сем/Web/TP_Web/askme_makarov/static/";
+    }
+    location / {
+        proxy_pass http://askme;
+        proxy_set_header Host $host;
+        proxy_cache mycache;
+        proxy_cache_valid 200 302 10m;
+        proxy_cache_valid 404      1m;
+    }
+}

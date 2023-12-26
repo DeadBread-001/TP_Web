@@ -154,9 +154,12 @@ def toggle_correct(request):
     comment.save()
     return JsonResponse({'is_correct': correct})
 
-@login_required(login_url='/login/', redirect_field_name='continue')
+
 @csrf_protect
 def check_author(request):
     id = request.POST.get('comment_id')
     comment = get_object_or_404(Comment, pk=id)
-    return JsonResponse({'user': request.user.id, 'author': comment.get_question_author_id()})
+    print(request.user.id)
+    if request.user.id is not None:
+        return JsonResponse({'user': request.user.id, 'author': comment.get_question_author_id()})
+    return JsonResponse({'user': -1, 'author': comment.get_question_author_id()})

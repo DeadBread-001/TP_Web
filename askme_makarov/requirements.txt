@@ -1,9 +1,10 @@
 asgiref==3.7.2
-cpplint==1.6.1
+cycler==0.11.0
 Django==4.2.6
 django-bootstrap5==23.3
 Faker==20.0.0
 fontawesomefree==6.4.2
+gunicorn==21.2.0
 Pillow==10.1.0
 psycopg2==2.9.9
 python-dateutil==2.8.2
