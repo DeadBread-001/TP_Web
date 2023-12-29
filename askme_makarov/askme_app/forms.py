@@ -32,24 +32,31 @@ class RegisterForm(forms.ModelForm):
         model = User
         fields = ['username', 'email', 'password']
 
-    def clean(self):
-        password = self.cleaned_data['password']
-        password_check = self.cleaned_data['password_check']
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise ValidationError('This username is already taken. Please choose a different one.')
+        return username
 
-        if password != password_check:
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_check = cleaned_data.get('password_check')
+
+        if password and password_check and password != password_check:
             raise ValidationError({'password': 'Passwords do not match', 'password_check': ''})
 
     def save(self, **kwargs):
         data = self.cleaned_data
 
-        avatar = data['avatar']
-        data.pop('avatar')
+        avatar = data.pop('avatar')
         data.pop('password_check')
 
         user = User.objects.create_user(**data)
         if not user:
             self.add_error(None, "User saving error!")
             return None
+
         profile = Profile.manager.create(user=user, avatar=avatar)
         if not profile:
             self.add_error(None, "Profile saving error!")

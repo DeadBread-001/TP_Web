@@ -19,15 +19,15 @@
                 {% if comment.get_likes_count > 0 %}
                     <span class="mx-1 text-success">{{ comment.get_likes_count }}</span>
                 {% else %}
-                    <span class="mx-1">{{ comment.get_likes_count }}</span>
+                    <span class="mx-1 likes">{{ comment.get_likes_count }}</span>
                 {% endif %}
-                <button type="button" data-id="{{ comment.id }}" class="btn p-0">
+                <button type="button" data-id="{{ comment.id }}" class="btn p-0 comment-like-btn">
                     <i class="fa fa-thumbs-up"></i>
                 </button>
             </div>
             <div class="col-10">
                 <div class="form-check checkbox-section">
-                    <input class="form-check-input" data-id="{{ comment.id }}" type="checkbox" value="" {% if comment.is_correct %}checked{% endif %}>
+                    <input class="form-check-input comment-correct-checkbox" data-id="{{ comment.id }}" type="checkbox" {% if comment.is_correct %}checked{% endif %}>
                     <label class="form-check-label">Correct!</label>
                 </div>
             </div>

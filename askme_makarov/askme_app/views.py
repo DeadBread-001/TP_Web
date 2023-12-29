@@ -6,6 +6,7 @@ from django.forms import model_to_dict
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse, JsonResponse
 from django.core.paginator import (Paginator, EmptyPage, PageNotAnInteger)
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
@@ -111,14 +112,14 @@ def hot(request):
 @login_required(login_url='/login/', redirect_field_name='continue')
 def settings(request):
     if request.method == 'GET':
-        settings_form = SettingsForm(initial=model_to_dict(request.user))
+        settings_form = SettingsForm(initial=model_to_dict(request.user), request=request)
     elif request.method == 'POST':
-        settings_form = SettingsForm(request.POST, request.FILES, instance=request.user)
+        settings_form = SettingsForm(request.POST, request.FILES, instance=request.user, request=request)
         if settings_form.is_valid():
             settings_form.save()
     else:
-        settings_form = SettingsForm()
-    return render(request, 'settings.html', {'tags': TOP_TAGS,'users': TOP_USERS, 'settings_form': settings_form})
+        settings_form = SettingsForm(request=request)
+    return render(request, 'settings.html', {'tags': TOP_TAGS, 'users': TOP_USERS, 'settings_form': settings_form})
 
 
 def tag(request, tag_name):
@@ -159,7 +160,37 @@ def toggle_correct(request):
 def check_author(request):
     id = request.POST.get('comment_id')
     comment = get_object_or_404(Comment, pk=id)
-    print(request.user.id)
     if request.user.id is not None:
         return JsonResponse({'user': request.user.id, 'author': comment.get_question_author_id()})
     return JsonResponse({'user': -1, 'author': comment.get_question_author_id()})
+
+def create_comment(request, question_id):
+    if request.method == 'POST':
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            profile = Profile.manager.get_profile_by_id(request.user.id)
+            question = Question.manager.get_question_by_id(question_id)
+
+            # Create a new instance of CommentForm with additional data
+            comment_form = CommentForm(
+                data=request.POST,
+                question=question,
+                author=profile,
+            )
+
+            if comment_form.is_valid():
+                new_comment = comment_form.save()
+
+                # Render the new comment as HTML
+                html = render_to_string('components/comment-item.html', {'comment': new_comment})
+
+                return JsonResponse({'html': html})
+            else:
+                # Handle form validation errors
+                return JsonResponse({'error': 'Invalid form data'})
+        else:
+            # Handle form validation errors
+            return JsonResponse({'error': 'Invalid form data'})
+    else:
+        # Handle non-POST requests
+        return JsonResponse({'error': 'Invalid request method'})

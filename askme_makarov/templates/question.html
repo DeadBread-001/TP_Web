@@ -46,16 +46,18 @@
                 </div>
             </div>
             <hr class="bg-dark border-2 border-top border-dark g-3"/>
-            {% for comment in comments %}
-                {% include 'components/comment-item.html' %}
-            {% endfor %}
+            <div id="comments-section">
+                {% for comment in comments %}
+                    {% include 'components/comment-item.html' %}
+                {% endfor %}
+            </div>
         </div>
         <hr class="bg-dark border-2 border-top border-dark g-3"/>
     </div>
     {% include 'components/paginator.html' %}
-    <form method="post">
+    <form id="comment-form" data-url="{% url 'create_comment' question_id=question.id %}" method="post">
         {% csrf_token %}
         {% bootstrap_form comment_form %}
-        <button type="submit" class="btn btn-primary col-2 g-3 mt-3">Answer</button>
+        <button id="comment-form" type="submit" class="btn btn-primary col-2 g-3 mt-3">Answer</button>
     </form>
 {% endblock %}
