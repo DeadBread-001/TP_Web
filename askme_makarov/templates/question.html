@@ -60,4 +60,52 @@
         {% bootstrap_form comment_form %}
         <button id="comment-form" type="submit" class="btn btn-primary col-2 g-3 mt-3">Answer</button>
     </form>
+    <script src="https://unpkg.com/centrifuge@5.0.1/dist/centrifuge.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            const centrifuge = new Centrifuge("{{ centrifugo.ws_url }}", {
+                token: "{{ centrifugo.token }}"
+            });
+
+            centrifuge.on('connecting', function (ctx) {
+                console.log(`connecting: ${ctx.code}, ${ctx.reason}`);
+            }).on('connected', function (ctx) {
+                console.log(`connected over ${ctx.transport}`);
+            }).on('disconnected', function (ctx) {
+                console.log(`disconnected: ${ctx.code}, ${ctx.reason}`);
+            }).connect();
+
+            const questionChannel = centrifuge.newSubscription("{{ centrifugo.channel }}");
+            questionChannel.on('publication', function (ctx) {
+                const newCommentData = typeof ctx.data === 'string' ? JSON.parse(ctx.data) : ctx.data;
+                handleNewComment(newCommentData);
+            }).subscribe();
+
+            function handleNewComment(newCommentData) {
+                $('#comments-section').append(newCommentData.html);
+
+                const newCommentCheckbox = $('#comments-section').find('.checkbox-section input[type="checkbox"]').last()[0];
+                const newCommentId = newCommentCheckbox.dataset.id;
+
+                const newCommentFormData = new FormData();
+                newCommentFormData.append('comment_id', newCommentId);
+
+                const newCommentCheckAuthorRequest = new Request('/check_author/', {
+                    method: 'POST',
+                    body: newCommentFormData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                fetch(newCommentCheckAuthorRequest)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        newCommentCheckbox.disabled = data.author !== data.user;
+                    });
+            }
+        });
+
+
+    </script>
 {% endblock %}

@@ -34,7 +34,6 @@ urlpatterns = [
     path('toggle_correct/', views.toggle_correct, name='toggle_correct'),
     path('check_author/', views.check_author, name='check_author'),
     path('question/<int:question_id>/create_comment/', views.create_comment, name='create_comment'),
-
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
